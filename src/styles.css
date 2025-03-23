@@ -59,7 +59,177 @@ body {
   background-color: rgba(255, 255, 255, 0.2);
 }
 
+<<<<<<< HEAD
 /* Content Styles */
+=======
+.login-page,
+.signup-page {
+  background-color: #ffffff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 60px);
+}
+
+.login-page h2,
+.signup-page h2 {
+  color: #000000;
+  font-size: 28px;
+  margin-bottom: 2rem;
+}
+
+.login-form,
+.signup-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  font-size: 16px;
+  color: #000000;
+  margin-bottom: 0.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.form-group a {
+  color: #ff0000;
+  text-decoration: none;
+}
+
+.form-group a:hover {
+  text-decoration: underline;
+}
+
+.password-group {
+  position: relative;
+}
+
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding-right: 40px;
+}
+
+.eye-icon {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  color: #000000;
+  font-size: 18px;
+}
+
+.eye-icon:hover {
+  color: #ff0000;
+}
+
+.login-button,
+.signup-button {
+  background-color: #ff0000;
+  color: #ffffff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.login-button:hover,
+.signup-button:hover {
+  background-color: #cc0000;
+}
+
+.signup-prompt,
+.login-prompt {
+  margin-top: 1rem;
+  font-size: 16px;
+}
+
+.signup-prompt a,
+.login-prompt a {
+  color: #ff0000;
+  text-decoration: none;
+}
+
+.signup-prompt a:hover,
+.login-prompt a:hover {
+  text-decoration: underline;
+}
+
+.otp-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.otp-form .form-group {
+  margin-bottom: 1.5rem;
+}
+
+.otp-form input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.success-message {
+  text-align: center;
+  color: #008000;
+  margin-top: 2rem;
+}
+
+.success-message h3 {
+  font-size: 24px;
+  margin-bottom: 1rem;
+}
+
+.success-message a {
+  color: #ff0000;
+  text-decoration: none;
+}
+
+.success-message a:hover {
+  text-decoration: underline;
+}
+
+.error {
+  color: #ff0000;
+  font-size: 14px;
+  margin-top: 0.5rem;
+  display: block;
+}
+
+>>>>>>> a4cc70ced7b8230299bed60e9597c84428c6fe9d
 .content {
   padding: 2rem;
   max-width: 1200px;
@@ -102,6 +272,7 @@ body {
 
 .section ul li strong {
   color: #1a3557;
+<<<<<<< HEAD
 }
 
 /* Login Page Styles */
@@ -331,4 +502,6 @@ table tr:hover {
 
 .logout-button:hover {
   background-color: #cc0000;
+=======
+>>>>>>> a4cc70ced7b8230299bed60e9597c84428c6fe9d
 }
