@@ -4,10 +4,18 @@ body {
   font-family: Arial, sans-serif;
 }
 
+<<<<<<< HEAD
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+=======
+body {
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+  line-height: 1.6;
+>>>>>>> b6acf3cefad430f93aa14d44db7f0c7b00ca8ca4
 }
 
 /* Navbar Styles */
@@ -49,6 +57,7 @@ body {
   text-decoration: underline;
 }
 
+<<<<<<< HEAD
 .shield-emblem {
   width: 40px;
   height: 40px;
@@ -236,6 +245,17 @@ h2 {
   font-size: 1rem;
   transition: background-color 0.2s ease;
   width: 100%; /* Full width for consistency */
+=======
+/* Dashboard Styles */
+.dashboard-container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+>>>>>>> b6acf3cefad430f93aa14d44db7f0c7b00ca8ca4
 }
 
 .signup-button:hover {
@@ -252,6 +272,7 @@ h2 {
   color: #1a3557;
 }
 
+<<<<<<< HEAD
 /* Dashboard Styles (Abbreviated) */
 .dashboard-container {
   max-width: 1000px;
@@ -261,6 +282,52 @@ h2 {
 }
 
 .enter-button {
+=======
+/* Input Section Styles */
+.input-section {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 30px;
+}
+
+.input-section form {
+  display: flex;
+  gap: 20px;
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-group label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a3557;
+}
+
+.input-group input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 14px;
+  width: 200px;
+  transition: border-color 0.3s ease;
+}
+
+.input-group input:focus {
+  border-color: #ff0000;
+  outline: none;
+}
+
+.enter-button {
+  padding: 10px 20px;
+>>>>>>> b6acf3cefad430f93aa14d44db7f0c7b00ca8ca4
   background-color: #ff0000;
   color: #fff;
   padding: 0.75rem;
@@ -270,7 +337,227 @@ h2 {
 }
 
 .enter-button:hover {
+<<<<<<< HEAD
   background-color: #cc0000;
 }
 
 /* Add other sections as needed */
+=======
+  background-color: #cc0000;
+}
+
+/* CSV Upload Section */
+.csv-upload-section {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.csv-dropzone {
+  border: 2px dashed #ff0000;
+  border-radius: 10px;
+  padding: 20px;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.csv-dropzone:hover {
+  background-color: #f1f1f1;
+}
+
+.csv-dropzone p {
+  margin-bottom: 10px;
+  color: #1a3557;
+}
+
+.csv-upload-button {
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.csv-upload-button:hover {
+  background-color: #cc0000;
+}
+
+/* Transaction History Styles */
+.transaction-history {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.transaction-history h1 {
+  color: #1a3557;
+  font-size: 28px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Filter Section */
+.filter-section {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-section label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #1a3557;
+}
+
+.filter-section select {
+  padding: 8px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: border-color 0.3s ease;
+}
+
+.filter-section select:focus {
+  border-color: #ff0000;
+  outline: none;
+}
+
+/* Table Container */
+.table-container {
+  position: relative; /* Required for positioning the scan button */
+  margin-top: 20px;
+}
+
+/* Table Styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+table th, table td {
+  padding: 12px;
+  border: 1px solid #ddd;
+  text-align: center;
+}
+
+table th {
+  background-color: #1a3557;
+  color: #fff;
+  font-weight: bold;
+}
+
+table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+table tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Scan Button */
+.scan-button {
+  position: absolute; /* Position the button absolutely */
+  bottom: -50px; /* Adjust this value to position the button below the table */
+  right: 0; /* Align the button to the right */
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: #fff;
+  border: 2px solid #ff0000;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.scan-button:hover {
+  background-color: #fff;
+  color: #ff0000;
+}
+
+.scan-button:disabled {
+  background-color: #ccc;
+  border-color: #ccc;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+/* Logout Button */
+.logout-button {
+  padding: 10px 20px;
+  background-color: #ff0000;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+}
+
+.logout-button:hover {
+  background-color: #cc0000;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .dashboard-container, .transaction-history {
+    padding: 1rem;
+  }
+
+  .input-section form {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .input-group input {
+    width: 100%;
+  }
+
+  .filter-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .filter-section select {
+    width: 100%;
+  }
+
+  table th, table td {
+    padding: 8px;
+    font-size: 14px;
+  }
+
+  .scan-button {
+    bottom: -40px; /* Adjust for smaller screens */
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+}
+>>>>>>> b6acf3cefad430f93aa14d44db7f0c7b00ca8ca4
