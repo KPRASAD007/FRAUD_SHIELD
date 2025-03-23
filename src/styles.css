@@ -1,0 +1,169 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.navbar {
+  background-color: #ff0000;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand h1 {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.shield-emblem {
+  width: 30px;
+  height: 30px;
+  background-color: #ffffff;
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-links a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Existing content styles (for Home, etc.) */
+.content {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.content h2 {
+  color: #1a3557;
+  font-size: 28px;
+  margin-bottom: 1rem;
+}
+
+.content p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+.section h3 {
+  color: #1a3557;
+  font-size: 22px;
+  margin-bottom: 0.75rem;
+}
+
+.section ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  margin-bottom: 1rem;
+}
+
+.section ul li {
+  font-size: 16px;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+}
+
+.section ul li strong {
+  color: #1a3557;
+}
+
+/* Updated Login page styles */
+.login-page {
+  background-color: #ffffff;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: calc(100vh - 60px); /* Adjust based on navbar height */
+}
+
+.login-page h2 {
+  color: #000000; /* Black heading */
+  font-size: 28px;
+  margin-bottom: 2rem;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 400px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+
+.login-button {
+  background-color: #ff0000;
+  color: #ffffff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.login-button:hover {
+  background-color: #cc0000;
+}
+
+.signup-prompt {
+  margin-top: 1rem;
+  font-size: 16px;
+}
+
+.signup-prompt a {
+  color: #ff0000;
+  text-decoration: none;
+}
+
+.signup-prompt a:hover {
+  text-decoration: underline;
+}
