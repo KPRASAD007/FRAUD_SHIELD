@@ -1,12 +1,19 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
 import Enquiry from './pages/Enquiry';
 import Login from './pages/Login';
+import Dashboard from './pages/Dashboard'; 
 import './App.css';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'; // Check login state
+  return isLoggedIn ? children : <Navigate to="/login" replace />; // Redirect to login if not logged in
+};
 
 function App() {
   return (
@@ -18,7 +25,10 @@ function App() {
         <Route path="/services" element={<Services />} />
         <Route path="/enquiry" element={<Enquiry />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/signup" element={<div className="content"><h2>Sign Up</h2><p>Signup page coming soon!</p></div>} />
+        {/* Add the Dashboard route */}
+       
       </Routes>
     </div>
   );
