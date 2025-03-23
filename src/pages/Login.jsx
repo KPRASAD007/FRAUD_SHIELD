@@ -4,19 +4,19 @@ import { Link } from 'react-router-dom';
 function Login() {
   return (
     <div className="login-page">
-      <h2>Login into your account</h2>
+      <h2>Login</h2>
       <form className="login-form">
         <div className="form-group">
-          <input type="text" id="username" name="username" placeholder="Username" />
+          <label htmlFor="username">Username:</label>
+          <input type="text" id="username" name="username" />
         </div>
         <div className="form-group">
-          <input type="password" id="password" name="password" placeholder="Password" />
+          <label htmlFor="password">Password:</label>
+          <input type="password" id="password" name="password" />
         </div>
         <button type="submit" className="login-button">Login</button>
       </form>
-      <p className="signup-prompt">
-        Not a member? <Link to="/signup">Sign Up</Link>
-      </p>
+      <p>Don't have an account? <Link to="/signup"><button className="signup-button">Sign Up</button></Link></p>
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Dashboard() {
+function AdminDashboard() {
   const [user, setUser] = useState(null);
+  const [signupLogs, setSignupLogs] = useState([]);
   const [transaction, setTransaction] = useState({
     Time: 0,
     Amount: 0,
@@ -14,7 +15,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch user data on mount
+  // Fetch user data and signup logs on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -22,6 +23,7 @@ function Dashboard() {
       return;
     }
 
+    // Fetch user info
     fetch('http://localhost:5000/api/auth/user', {
       headers: { 'Authorization': `Bearer ${token}` },
     })
@@ -29,11 +31,25 @@ function Dashboard() {
         if (!res.ok) throw new Error('Unauthorized');
         return res.json();
       })
-      .then(data => setUser(data))
+      .then(data => {
+        if (data.role !== 'admin') throw new Error('Not an admin');
+        setUser(data);
+      })
       .catch(() => {
         localStorage.removeItem('token');
         navigate('/login');
       });
+
+    // Fetch signup logs
+    fetch('http://localhost:5000/api/auth/signup-logs', {
+      headers: { 'Authorization': `Bearer ${token}` },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch logs');
+        return res.json();
+      })
+      .then(data => setSignupLogs(data))
+      .catch(err => console.error(err.message));
   }, [navigate]);
 
   // Handle transaction input changes
@@ -41,7 +57,7 @@ function Dashboard() {
     const { name, value } = e.target;
     setTransaction(prev => ({
       ...prev,
-      [name]: parseFloat(value) || 0, // Default to 0 if invalid
+      [name]: parseFloat(value) || 0,
     }));
   };
 
@@ -54,7 +70,7 @@ function Dashboard() {
     }
 
     setLoading(true);
-    const features = Object.values(transaction); // Convert to array of 30 features
+    const features = Object.values(transaction);
     try {
       const response = await fetch('http://localhost:5000/api/auth/check-fraud', {
         method: 'POST',
@@ -85,11 +101,40 @@ function Dashboard() {
 
   return (
     <div className="dashboard-container">
-      <h2>Welcome, {user.username} ({user.role})</h2>
+      <h2>Welcome, {user.username} (Admin)</h2>
+      
+      {/* Signup Logs Section */}
+      <div className="signup-logs-section">
+        <h3>Recent Signup Activity</h3>
+        {signupLogs.length > 0 ? (
+          <table className="transaction-history">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Action</th>
+                <th>Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {signupLogs.map(log => (
+                <tr key={log.id}>
+                  <td>{log.user_id}</td>
+                  <td>{log.action}</td>
+                  <td>{new Date(log.timestamp).toLocaleString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p>No signup activity yet.</p>
+        )}
+      </div>
+
+      {/* Fraud Check Section */}
       <div className="input-section">
-        <h3>Check Transaction for Fraud</h3>
+        <h3>Admin Fraud Check</h3>
         <div className="input-group">
-          <label>Time (seconds since first transaction):</label>
+          <label>Time (seconds):</label>
           <input
             type="number"
             name="Time"
@@ -109,8 +154,7 @@ function Dashboard() {
             step="0.01"
           />
         </div>
-        {/* Simplified: Only Time and Amount for demo; V1-V28 mocked as 0 */}
-        <p className="note">Note: Other features (V1-V28) are mocked as 0 for demo simplicity.</p>
+        <p className="note">Note: V1-V28 are mocked as 0 for demo purposes.</p>
         <button
           className="enter-button"
           onClick={handleFraudCheck}
@@ -119,6 +163,8 @@ function Dashboard() {
           {loading ? 'Checking...' : 'Check Fraud'}
         </button>
       </div>
+
+      {/* Fraud Result */}
       {fraudResult && (
         <div className="fraud-result">
           <h3>Fraud Detection Result</h3>
@@ -128,9 +174,11 @@ function Dashboard() {
           <p>Probability of Fraud: {(fraudResult.probability * 100).toFixed(2)}%</p>
         </div>
       )}
+
+      {/* Logout */}
       <button className="logout-button" onClick={handleLogout}>Logout</button>
     </div>
   );
 }
 
-export default Dashboard;
+export default AdminDashboard;
