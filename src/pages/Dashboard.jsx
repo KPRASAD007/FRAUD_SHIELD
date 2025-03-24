@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles.css'; // Import the updated styles
+import '../styles.css'; // Corrected path
 
 function Dashboard() {
   const [user, setUser] = useState(null);
@@ -22,7 +22,6 @@ function Dashboard() {
   const [showEnterButton, setShowEnterButton] = useState(false);
   const navigate = useNavigate();
 
-  // Fetch user data on mount
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -44,7 +43,6 @@ function Dashboard() {
       });
   }, [navigate]);
 
-  // Handle transaction input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTransaction(prev => ({
@@ -53,7 +51,6 @@ function Dashboard() {
     }));
   };
 
-  // Check fraud with backend
   const handleFraudCheck = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -91,7 +88,6 @@ function Dashboard() {
     }
   };
 
-  // Handle account form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Account Number:', accountNumber);
@@ -101,7 +97,6 @@ function Dashboard() {
     setShowCSVUpload(true);
   };
 
-  // Handle CSV file upload
   const handleCSVUpload = (e) => {
     const file = e.target.files[0];
     if (file && file.type === 'text/csv') {
@@ -114,7 +109,6 @@ function Dashboard() {
     }
   };
 
-  // Handle file drop
   const handleDrop = (e) => {
     e.preventDefault();
     const file = e.dataTransfer.files[0];
@@ -128,12 +122,10 @@ function Dashboard() {
     }
   };
 
-  // Prevent default drag-over behavior
   const handleDragOver = (e) => {
     e.preventDefault();
   };
 
-  // Parse CSV file
   const parseCSV = (file) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -158,12 +150,10 @@ function Dashboard() {
     reader.readAsText(file);
   };
 
-  // Handle Proceed button click
   const handleEnterButtonClick = () => {
     navigate('/transaction-history', { state: { transactionData } });
   };
 
-  // Logout handler
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
@@ -174,8 +164,6 @@ function Dashboard() {
   return (
     <div className="dashboard-container">
       <h1>Welcome, {user.username} ({user.role})</h1>
-
-      {/* Fraud Check Section */}
       <div className="input-section">
         <h2>Check Transaction for Fraud</h2>
         <div className="input-group">
@@ -219,8 +207,6 @@ function Dashboard() {
           <p>Probability of Fraud: {(fraudResult.probability * 100).toFixed(2)}%</p>
         </div>
       )}
-
-      {/* Account Info Section */}
       <div className="input-section">
         <h2>Enter Account Details</h2>
         <form onSubmit={handleSubmit}>
@@ -249,8 +235,6 @@ function Dashboard() {
           <button type="submit" className="enter-button">Enter</button>
         </form>
       </div>
-
-      {/* CSV Upload Section */}
       {showContent && showCSVUpload && (
         <div className="csv-upload-section">
           <h2>Upload Transaction CSV</h2>
@@ -284,7 +268,6 @@ function Dashboard() {
           )}
         </div>
       )}
-
       <button className="logout-button" onClick={handleLogout}>Logout</button>
     </div>
   );
