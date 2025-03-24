@@ -1,182 +1,157 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { Line } from 'react-chartjs-2';
+import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+import Skeleton from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { FaUsers, FaChartLine } from 'react-icons/fa';
+import { logout } from '../store/authSlice';
+
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
 function AdminDashboard() {
-  const [user, setUser] = useState(null);
-  const [signupLogs, setSignupLogs] = useState([]);
-  const [transaction, setTransaction] = useState({
-    Time: 0,
-    Amount: 0,
-    V1: 0, V2: 0, V3: 0, V4: 0, V5: 0, V6: 0, V7: 0, V8: 0, V9: 0, V10: 0,
-    V11: 0, V12: 0, V13: 0, V14: 0, V15: 0, V16: 0, V17: 0, V18: 0, V19: 0, V20: 0,
-    V21: 0, V22: 0, V23: 0, V24: 0, V25: 0, V26: 0, V27: 0, V28: 0,
-  });
-  const [fraudResult, setFraudResult] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({ totalUsers: 0, totalTransactions: 0, fraudTransactions: 0 });
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { user, token } = useSelector((state) => state.auth);
 
-  // Fetch user data and signup logs on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
+    if (!token || user.role !== 'admin') {
+      navigate('/dashboard');
       return;
     }
 
-    // Fetch user info
-    fetch('http://localhost:5000/api/auth/user', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Unauthorized');
-        return res.json();
-      })
-      .then(data => {
-        if (data.role !== 'admin') throw new Error('Not an admin');
-        setUser(data);
-      })
-      .catch(() => {
-        localStorage.removeItem('token');
-        navigate('/login');
-      });
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      try {
+        const response = await fetch('http://localhost:5001/api/auth/admin-stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch admin stats');
+        }
+        setStats(data);
+      } catch (err) {
+        setError(err.message);
+        toast.error(err.message);
+        if (err.message.includes('Invalid token')) {
+          dispatch(logout());
+          navigate('/login');
+        }
+      } finally {
+        setStatsLoading(false);
+      }
+    };
 
-    // Fetch signup logs
-    fetch('http://localhost:5000/api/auth/signup-logs', {
-      headers: { 'Authorization': `Bearer ${token}` },
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch logs');
-        return res.json();
-      })
-      .then(data => setSignupLogs(data))
-      .catch(err => console.error(err.message));
-  }, [navigate]);
+    fetchStats();
+  }, [token, user, navigate, dispatch]);
 
-  // Handle transaction input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setTransaction(prev => ({
-      ...prev,
-      [name]: parseFloat(value) || 0,
-    }));
+  const chartData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Fraud Transactions',
+        data: [10, 15, 8, 12, 20, 5],
+        borderColor: 'rgba(255, 99, 132, 1)',
+        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+        fill: true,
+        tension: 0.4,
+      },
+    ],
   };
 
-  // Check fraud with backend
-  const handleFraudCheck = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      navigate('/login');
-      return;
-    }
-
-    setLoading(true);
-    const features = Object.values(transaction);
-    try {
-      const response = await fetch('http://localhost:5000/api/auth/check-fraud', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({ features }),
-      });
-      if (!response.ok) throw new Error('Fraud check failed');
-      const data = await response.json();
-      setFraudResult(data);
-    } catch (err) {
-      alert(err.message);
-      setFraudResult(null);
-    } finally {
-      setLoading(false);
-    }
+  const chartOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top', labels: { color: '#4B5EAA' } },
+      title: { display: true, text: 'Fraud Trends (Last 6 Months)', font: { size: 16 }, color: '#4B5EAA' },
+      tooltip: { backgroundColor: '#1F2937', titleColor: '#fff', bodyColor: '#fff' },
+    },
+    scales: {
+      x: { ticks: { color: '#4B5EAA' } },
+      y: { ticks: { color: '#4B5EAA' }, beginAtZero: true },
+    },
   };
 
-  // Logout handler
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  if (!user) return <div className="dashboard-container">Loading...</div>;
+  if (!user) {
+    return <div className="flex justify-center items-center h-screen">Loading...</div>;
+  }
 
   return (
-    <div className="dashboard-container">
-      <h2>Welcome, {user.username} (Admin)</h2>
-      
-      {/* Signup Logs Section */}
-      <div className="signup-logs-section">
-        <h3>Recent Signup Activity</h3>
-        {signupLogs.length > 0 ? (
-          <table className="transaction-history">
-            <thead>
-              <tr>
-                <th>User ID</th>
-                <th>Action</th>
-                <th>Timestamp</th>
-              </tr>
-            </thead>
-            <tbody>
-              {signupLogs.map(log => (
-                <tr key={log.id}>
-                  <td>{log.user_id}</td>
-                  <td>{log.action}</td>
-                  <td>{new Date(log.timestamp).toLocaleString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    <div className="space-y-6">
+      <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Admin Dashboard</h2>
+      {error && <p className="text-red-600 bg-red-100 p-3 rounded">{error}</p>}
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {statsLoading ? (
+          Array(3).fill().map((_, index) => (
+            <Skeleton key={index} height={120} className="rounded-lg" />
+          ))
         ) : (
-          <p>No signup activity yet.</p>
+          <>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center space-x-4"
+            >
+              <FaUsers className="text-blue-500 text-3xl" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Users</h3>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalUsers}</p>
+              </div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center space-x-4"
+            >
+              <FaChartLine className="text-green-500 text-3xl" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Total Transactions</h3>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.totalTransactions}</p>
+              </div>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg flex items-center space-x-4"
+            >
+              <FaChartLine className="text-red-500 text-3xl" />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300">Fraud Transactions</h3>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">{stats.fraudTransactions}</p>
+              </div>
+            </motion.div>
+          </>
         )}
       </div>
 
-      {/* Fraud Check Section */}
-      <div className="input-section">
-        <h3>Admin Fraud Check</h3>
-        <div className="input-group">
-          <label>Time (seconds):</label>
-          <input
-            type="number"
-            name="Time"
-            value={transaction.Time}
-            onChange={handleInputChange}
-            placeholder="e.g., 0"
-          />
-        </div>
-        <div className="input-group">
-          <label>Amount ($):</label>
-          <input
-            type="number"
-            name="Amount"
-            value={transaction.Amount}
-            onChange={handleInputChange}
-            placeholder="e.g., 100.00"
-            step="0.01"
-          />
-        </div>
-        <p className="note">Note: V1-V28 are mocked as 0 for demo purposes.</p>
-        <button
-          className="enter-button"
-          onClick={handleFraudCheck}
-          disabled={loading}
-        >
-          {loading ? 'Checking...' : 'Check Fraud'}
-        </button>
+      {/* Fraud Trends Chart */}
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+        <Line data={chartData} options={chartOptions} />
       </div>
 
-      {/* Fraud Result */}
-      {fraudResult && (
-        <div className="fraud-result">
-          <h3>Fraud Detection Result</h3>
-          <p className={fraudResult.prediction === 1 ? 'fraud' : 'legit'}>
-            Prediction: {fraudResult.prediction === 1 ? 'Fraud Detected' : 'Legitimate Transaction'}
-          </p>
-          <p>Probability of Fraud: {(fraudResult.probability * 100).toFixed(2)}%</p>
-        </div>
-      )}
-
-      {/* Logout */}
-      <button className="logout-button" onClick={handleLogout}>Logout</button>
+      {/* Navigation Buttons */}
+      <div className="flex justify-center space-x-4">
+        <button
+          onClick={() => navigate('/user-management')}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+        >
+          Manage Users
+        </button>
+        <button
+          onClick={() => navigate('/transaction-history')}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors"
+        >
+          View Transaction History
+        </button>
+      </div>
     </div>
   );
 }

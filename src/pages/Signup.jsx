@@ -1,98 +1,118 @@
-// src/pages/Signup.jsx
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa'; // Install react-icons
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { motion } from 'framer-motion';
+import toast from 'react-hot-toast';
+import { FaEnvelope, FaLock, FaUser } from 'react-icons/fa';
+
+const signupSchema = z.object({
+  email: z.string().email('Invalid email address').nonempty('Email is required'),
+  password: z.string().min(6, 'Password must be at least 6 characters').nonempty('Password is required'),
+  role: z.enum(['user', 'admin'], { required_error: 'Role is required' }),
+});
 
 function Signup() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm({
+    resolver: zodResolver(signupSchema),
+  });
 
-  // Password strength checker
-  const getPasswordStrength = (pwd) => {
-    if (pwd.length === 0) return '';
-    if (pwd.length < 6) return 'Weak';
-    if (pwd.length < 10 || !/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd)) return 'Moderate';
-    return 'Strong';
-  };
-
-  const passwordStrength = getPasswordStrength(password);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/signup', {
+      const response = await fetch('http://localhost:5001/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify(data),
       });
-      const data = await response.json();
-      if (response.ok) {
-        alert('Signup successful! Please log in.');
-        navigate('/login');
-      } else {
-        alert(data.message || 'Signup failed');
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || 'Signup failed');
       }
-    } catch (error) {
-      console.error('Signup error:', error);
-      alert('An error occurred');
+      toast.success('Signup successful! Please login.');
+      navigate('/login');
+    } catch (err) {
+      toast.error(err.message);
     }
   };
 
   return (
-    <div className="signup-page">
-      <div className="signup-container">
-        <div className="signup-header">
-          <h1 className="signup-title">Join FRAUD SHIELD</h1>
-          <p className="signup-subtitle">Create an account to secure your transactions</p>
-        </div>
-        <form className="signup-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <FaUser className="input-icon" />
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="signup-input"
-            />
-          </div>
-          <div className="input-group">
-            <FaEnvelope className="input-icon" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+        className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
+      >
+        <h2 className="text-3xl font-bold mb-6 text-center text-gray-900 dark:text-gray-100">Sign Up</h2>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <div>
+            <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <FaEnvelope className="inline mr-2" /> Email
+            </label>
             <input
               type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="signup-input"
+              id="email"
+              {...register('email')}
+              className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your email"
             />
+            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
           </div>
-          <div className="input-group">
-            <FaLock className="input-icon" />
+          <div>
+            <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <FaLock className="inline mr-2" /> Password
+            </label>
             <input
               type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="signup-input"
+              id="password"
+              {...register('password')}
+              className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+              placeholder="Enter your password"
             />
-            {passwordStrength && (
-              <span className={`password-strength ${passwordStrength.toLowerCase()}`}>
-                {passwordStrength}
-              </span>
-            )}
+            {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
           </div>
-          <button className="signup-button" type="submit">Sign Up</button>
-          <p className="login-prompt">
-            Already have an account?{' '}
-            <Link className="login-link" to="/login">Log In</Link>
-          </p>
+          <div>
+            <label htmlFor="role" className="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
+              <FaUser className="inline mr-2" /> Role
+            </label>
+            <select
+              id="role"
+              {...register('role')}
+              className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100 focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select a role</option>
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
+            {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
+          </div>
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white px-4 py-3 rounded-lg flex items-center justify-center transition-colors disabled:opacity-50"
+          >
+            {isSubmitting ? (
+              <>
+                <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                Signing up...
+              </>
+            ) : (
+              'Sign Up'
+            )}
+          </button>
         </form>
-      </div>
+        <p className="mt-4 text-center text-gray-700 dark:text-gray-300">
+          Already have an account?{' '}
+          <button onClick={() => navigate('/login')} className="text-blue-500 hover:underline">
+            Login
+          </button>
+        </p>
+      </motion.div>
     </div>
   );
 }
