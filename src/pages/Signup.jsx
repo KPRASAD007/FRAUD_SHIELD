@@ -1,65 +1,97 @@
+// src/pages/Signup.jsx
 import React, { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { FaUser, FaEnvelope, FaLock } from 'react-icons/fa'; // Install react-icons
 
 function Signup() {
-  const [step, setStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const navigate = useNavigate();
+
+  // Password strength checker
+  const getPasswordStrength = (pwd) => {
+    if (pwd.length === 0) return '';
+    if (pwd.length < 6) return 'Weak';
+    if (pwd.length < 10 || !/[A-Z]/.test(pwd) || !/[0-9]/.test(pwd)) return 'Moderate';
+    return 'Strong';
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert('Signup successful! Please log in.');
+        navigate('/login');
+      } else {
+        alert(data.message || 'Signup failed');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('An error occurred');
+    }
+  };
 
   return (
     <div className="signup-page">
-      <div className="signup-banner">
-        <h3>Secure Your Finances Today</h3>
-      </div>
-      <div className="signup-card">
-        <h2>Sign Up</h2>
-        <div className="step-indicator">
-          <span className={step === 1 ? 'active' : ''}>1. Account Details</span>
-          <span className={step === 2 ? 'active' : ''}>2. Verify OTP</span>
+      <div className="signup-container">
+        <div className="signup-header">
+          <h1 className="signup-title">Join FRAUD SHIELD</h1>
+          <p className="signup-subtitle">Create an account to secure your transactions</p>
         </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: step === 1 ? '50%' : '100%' }}></div>
-        </div>
-        {step === 1 ? (
-          <form className="signup-form">
-            <div className="form-group">
-              <label htmlFor="username">Username:</label>
-              <div className="input-wrapper">
-                <span className="input-icon">👤</span>
-                <input type="text" id="username" name="username" placeholder="Enter username" />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="email">Email:</label>
-              <div className="input-wrapper">
-                <span className="input-icon">📧</span>
-                <input type="email" id="email" name="email" placeholder="Enter email" />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Password:</label>
-              <div className="input-wrapper">
-                <span className="input-icon">🔒</span>
-                <input type="password" id="password" name="password" placeholder="Enter password" />
-              </div>
-            </div>
-            <div className="form-group">
-              <label htmlFor="confirm-password">Confirm Password:</label>
-              <div className="input-wrapper">
-                <span className="input-icon">🔒</span>
-                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm password" />
-              </div>
-            </div>
-            <div className="form-group checkbox-group">
-              <input type="checkbox" id="terms" name="terms" />
-              <label htmlFor="terms">I agree to the <a href="#">Terms and Conditions</a></label>
-            </div>
-            <button type="submit" className="signup-button" onClick={(e) => { e.preventDefault(); setStep(2); }}>Sign Up</button>
-          </form>
-        ) : (
-          <div className="success-message">
-            <h2>OTP Sent!</h2>
-            <p>Check your email for the OTP to complete signup.</p>
-            <button className="signup-button" onClick={() => setStep(1)}>Back to Form</button>
+        <form className="signup-form" onSubmit={handleSubmit}>
+          <div className="input-group">
+            <FaUser className="input-icon" />
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              className="signup-input"
+            />
           </div>
-        )}
+          <div className="input-group">
+            <FaEnvelope className="input-icon" />
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="signup-input"
+            />
+          </div>
+          <div className="input-group">
+            <FaLock className="input-icon" />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="signup-input"
+            />
+            {passwordStrength && (
+              <span className={`password-strength ${passwordStrength.toLowerCase()}`}>
+                {passwordStrength}
+              </span>
+            )}
+          </div>
+          <button className="signup-button" type="submit">Sign Up</button>
+          <p className="login-prompt">
+            Already have an account?{' '}
+            <Link className="login-link" to="/login">Log In</Link>
+          </p>
+        </form>
       </div>
     </div>
   );

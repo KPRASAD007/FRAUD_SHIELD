@@ -1,7 +1,7 @@
-const { PythonShell } = require('python-shell');
-const pool = require('../config/db');
+import { PythonShell } from 'python-shell';
+import pool from '../config/db';
 
-exports.getUser = async (req, res) => {
+export const getUser = async (req, res) => {
   const userId = req.user.id;
   try {
     const result = await pool.query('SELECT username, email, role FROM users WHERE id = $1', [userId]);
@@ -11,7 +11,7 @@ exports.getUser = async (req, res) => {
   }
 };
 
-exports.checkFraud = async (req, res) => {
+export const checkFraud = async (req, res) => {
   const { features } = req.body; // Expects 30 features (Time, V1-V28, Amount)
   if (!features || features.length !== 30) {
     return res.status(400).json({ error: 'Invalid features array, must be 30 elements' });
