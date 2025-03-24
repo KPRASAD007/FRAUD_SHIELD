@@ -1,99 +1,82 @@
 import express from 'express';
 import cors from 'cors';
-import authRoutes from './routes/authRoutes.js';
-import 'dotenv/config';
-import process from 'process';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import authRoutes from './routes/auth.js';
+import { initDB } from './db.js';
+import pool from './db.js';
+import { sendFraudAlertEmail } from './email.js';
+import jwt from 'jsonwebtoken';
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const httpServer = createServer(app);
+
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true,
+  })
+);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST'],
+    credentials: true,
+  },
+});
 
 app.use(express.json());
-app.use(cors({ origin: 'http://localhost:5173' }));
-
-app.get('/', (req, res) => {
-  res.send(`
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <title>Fraud Shield API Tester</title>
-        <style>
-          body { font-family: Arial, sans-serif; margin: 20px; }
-          form { margin-bottom: 20px; }
-          pre { background: #f0f0f0; padding: 10px; }
-        </style>
-      </head>
-      <body>
-        <h1>Fraud Shield API Tester</h1>
-        
-        <h2>Signup</h2>
-        <form id="signupForm">
-          <input type="text" name="name" placeholder="Name" required><br>
-          <input type="email" name="email" placeholder="Email" required><br>
-          <input type="password" name="password" placeholder="Password" required><br>
-          <button type="submit">Signup</button>
-        </form>
-        <pre id="signupResponse"></pre>
-
-        <h2>Login</h2>
-        <form id="loginForm">
-          <input type="email" name="email" placeholder="Email" required><br>
-          <input type="password" name="password" placeholder="Password" required><br>
-          <button type="submit">Login</button>
-        </form>
-        <pre id="loginResponse"></pre>
-
-        <h2>Check Fraud</h2>
-        <form id="checkFraudForm">
-          <input type="text" name="features" placeholder="Features" required><br>
-          <input type="text" name="token" placeholder="Paste Token Here" required><br>
-          <button type="submit">Check Fraud</button>
-        </form>
-        <pre id="checkFraudResponse"></pre>
-
-        <script>
-          async function handleSubmit(event, endpoint, responseId) {
-            event.preventDefault();
-            const form = event.target;
-            const data = Object.fromEntries(new FormData(form));
-            const options = {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(data)
-            };
-            if (endpoint === '/api/auth/check-fraud') {
-              options.headers['Authorization'] = 'Bearer ' + data.token;
-              delete data.token;
-              options.body = JSON.stringify({ features: data.features });
-            }
-            try {
-              const response = await fetch('http://localhost:5000' + endpoint, options);
-              const result = await response.json();
-              document.getElementById(responseId).textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-              document.getElementById(responseId).textContent = 'Error: ' + error.message;
-            }
-          }
-
-          document.getElementById('signupForm').addEventListener('submit', (e) => handleSubmit(e, '/api/auth/signup', 'signupResponse'));
-          document.getElementById('loginForm').addEventListener('submit', (e) => handleSubmit(e, '/api/auth/login', 'loginResponse'));
-          document.getElementById('checkFraudForm').addEventListener('submit', (e) => handleSubmit(e, '/api/auth/check-fraud', 'checkFraudResponse'));
-        </script>
-      </body>
-    </html>
-  `);
-});
-
 app.use('/api/auth', authRoutes);
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('checkFraud', async (data) => {
+    const isFraud = data.features.some((feature) => feature > 1000);
+    if (isFraud) {
+      const alert = {
+        message: 'Potential fraud detected!',
+        accountDetails: data.accountDetails,
+      };
+      io.emit('fraudAlert', alert);
+
+      try {
+        const token = socket.handshake.auth.token;
+        const decoded = jwt.verify(token, 'my-secure-jwt-secret-12345');
+        const result = await pool.query('SELECT email FROM users WHERE id = $1', [decoded.id]);
+        const userEmail = result.rows[0]?.email;
+        if (userEmail) {
+          await sendFraudAlertEmail(userEmail, data.accountDetails);
+        }
+      } catch (err) {
+        console.error('Error sending fraud alert email:', err);
+      }
+    }
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
 });
 
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('Shutting down server...');
-  server.close(() => {
-    console.log('Server stopped');
-    process.exit(0);
-  });
+const PORT = 5001;
+httpServer.listen(PORT, async () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+  await initDB();
 });

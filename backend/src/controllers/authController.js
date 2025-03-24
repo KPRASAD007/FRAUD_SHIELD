@@ -1,98 +1,100 @@
-import bcrypt from 'bcryptjs';
+import { createReadStream } from 'fs';
+import { parse } from 'csv-parse';
 import jwt from 'jsonwebtoken';
-import pool from '../config/db.js';
-import 'dotenv/config';
-import process from 'process';
+import multer from 'multer';
+import pool from '../db.js';
 
-export const signup = async (req, res) => {
-  const { name, email, password } = req.body;
+const upload = multer({ dest: 'uploads/' });
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ message: 'All fields are required' });
-  }
-
-  const client = await pool.connect();
-  try {
-    const { rows } = await client.query('SELECT email FROM users WHERE email = $1', [email]);
-    if (rows.length > 0) {
-      return res.status(400).json({ message: 'Email already exists' });
+export const checkFraud = [
+  upload.single('csvFile'),
+  async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await client.query(
-      'INSERT INTO users (name, email, password) VALUES ($1, $2, $3)',
-      [name, email, hashedPassword]
-    );
-    res.status(201).json({ message: 'Signup successful' });
-  } catch (err) {
-    console.error('Signup error:', err.stack);
-    res.status(500).json({ message: 'Server error' });
-  } finally {
-    client.release();
-  }
-};
-
-export const login = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required' });
-  }
-
-  const client = await pool.connect();
-  try {
-    const { rows } = await client.query('SELECT * FROM users WHERE email = $1', [email]);
-    const user = rows[0];
-    if (!user) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, 'my-secure-jwt-secret-12345');
+    } catch (err) {
+      return res.status(401).json({ error: 'Invalid token' });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid email or password' });
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '1h' }
-    );
-    res.json({ token });
-  } catch (err) {
-    console.error('Login error:', err.stack);
-    res.status(500).json({ message: 'Server error' });
-  } finally {
-    client.release();
-  }
-};
+    const { accountDetails, bankName } = req.body;
+    const records = [];
 
-export const checkFraud = (req, res) => {
-  const { features } = req.body;
-  if (!Array.isArray(features) || features.length !== 30) {
-    return res.status(400).json({ message: 'Features must be an array of 30 numbers' });
-  }
-  // Mock prediction (replace with real logic later)
-  const prediction = Math.random() > 0.5 ? 1 : 0; // 0 = legit, 1 = fraud
-  const probability = Math.random();
+    createReadStream(req.file.path)
+      .pipe(parse({ delimiter: ',', columns: true, trim: true }))
+      .on('data', (row) => {
+        records.push(row);
+      })
+      .on('end', async () => {
+        console.log('CSV parsed:', records);
 
-  res.json({ prediction, probability });
-};
+        const features = Array(30).fill(0);
+        if (records.length > 0) {
+          const row = records[0];
+          const rowValues = Object.values(row).map((val) => {
+            const num = parseFloat(val);
+            return isNaN(num) ? 0 : num;
+          });
+          for (let i = 0; i < Math.min(rowValues.length, 30); i++) {
+            features[i] = rowValues[i];
+          }
+        }
 
-export const getUser = async (req, res) => {
-  const userId = req.user.id;
+        let fraudScore = 0;
+        const maxFeature = Math.max(...features);
+        if (maxFeature > 1000) {
+          fraudScore += 0.5 * (maxFeature / 2000);
+        }
+        const avgFeature = features.reduce((sum, val) => sum + val, 0) / features.length;
+        const highFeatures = features.filter((val) => val > avgFeature * 1.5).length;
+        fraudScore += 0.3 * (highFeatures / features.length);
+        const previousFeatures = Array(30).fill(0);
+        const featureChanges = features.map((val, i) => Math.abs(val - previousFeatures[i]));
+        const maxChange = Math.max(...featureChanges);
+        if (maxChange > 500) {
+          fraudScore += 0.2 * (maxChange / 1000);
+        }
+        fraudScore = Math.min(fraudScore, 1);
 
-  const client = await pool.connect();
-  try {
-    const { rows } = await client.query('SELECT id, name AS username, email, role FROM users WHERE id = $1', [userId]);
-    const user = rows[0];
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.json(user);
-  } catch (err) {
-    console.error('Get user error:', err.stack);
-    res.status(500).json({ message: 'Server error' });
-  } finally {
-    client.release();
-  }
-};
+        const result = {
+          result: fraudScore > 0.5 ? 'Potential fraud detected' : 'Fraud check complete',
+          fraudScore: fraudScore.toFixed(2),
+          features,
+          file: req.file.filename,
+          accountDetails,
+          bankName,
+        };
+
+        try {
+          await pool.query(
+            `INSERT INTO transactions (user_id, result, fraud_score, features, account_details, bank_name, file_name)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+              decoded.id,
+              result.result,
+              result.fraudScore,
+              JSON.stringify(result.features),
+              result.accountDetails,
+              result.bankName,
+              result.file,
+            ]
+          );
+        } catch (err) {
+          console.error('Error saving transaction to database:', err);
+        }
+
+        res.json(result);
+      })
+      .on('error', (err) => {
+        res.status(500).json({ error: 'Error parsing CSV: ' + err.message });
+      });
+  },
+];

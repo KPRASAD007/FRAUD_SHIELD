@@ -1,33 +1,22 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/Navbar'; // Import Navbar from components/
-import Home from './pages/Home';
-import Dashboard from './pages/Dashboard';
-import About from './pages/About';
+import { Routes, Route } from 'react-router-dom'; // Remove BrowserRouter import
 import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Services from './pages/Services';
-import Enquiry from './pages/Enquiry';
+import Dashboard from './pages/Dashboard';
+import TransactionSubmission from './pages/TransactionSubmission';
+import UserManagement from './pages/UserManagement';
 import TransactionHistory from './pages/TransactionHistory';
-import './styles.css'; // Correct path from src/
+import './App.css';
 
 function App() {
   return (
-    <Router>
-      <div className="app">
-        <Navbar /> {/* Add Navbar here */}
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/services" element={<Services />} />
-          <Route path="/enquiry" element={<Enquiry />} />
-          <Route path="/transaction-history" element={<TransactionHistory />} />
-        </Routes>
-      </div>
-    </Router>
+    // Remove <Router> wrapper, since it's already in main.jsx
+    <Routes>
+      <Route path="/login" element={<Login />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/transaction-submission" element={<TransactionSubmission />} />
+      <Route path="/user-management" element={<UserManagement />} />
+      <Route path="/transaction-history" element={<TransactionHistory />} />
+      <Route path="/" element={<Login />} />
+    </Routes>
   );
 }
 

@@ -1,76 +1,66 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { FaEnvelope, FaLock } from 'react-icons/fa'; // Install react-icons
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { login } from '../store/authSlice';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', { email, password });
-
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch('http://localhost:5001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
       const data = await response.json();
-      console.log('Login response:', data);
-
-      if (response.ok && data.token) {
-        localStorage.setItem('token', data.token);
-        navigate('/dashboard');
-      } else {
-        alert(data.message || 'Login failed');
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      alert('An error occurred. Please check the console and ensure the backend is running.');
+      dispatch(login({ user: { email: data.email, role: data.role }, token: data.token }));
+      localStorage.setItem('token', data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message);
     }
   };
 
   return (
-    <div className="login-page">
-      <div className="login-container">
-        <div className="login-header">
-          <h1 className="login-title">Welcome to FRAUD SHIELD</h1>
-          <p className="login-subtitle">Securely log in to protect your transactions</p>
-        </div>
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <FaEnvelope className="input-icon" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <div className="bg-white p-6 rounded shadow-md w-full max-w-sm">
+        <h2 className="text-2xl font-bold mb-4">Login</h2>
+        {error && <p className="text-red-600 mb-4">{error}</p>}
+        <form onSubmit={handleSubmit}>
+          <div className="mb-4">
+            <label htmlFor="email" className="block mb-1">Email:</label>
             <input
               type="email"
-              placeholder="Email"
+              id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="login-input"
+              className="w-full p-2 border rounded"
             />
           </div>
-          <div className="input-group">
-            <FaLock className="input-icon" />
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-1">Password:</label>
             <input
               type="password"
-              placeholder="Password"
+              id="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="login-input"
+              className="w-full p-2 border rounded"
             />
           </div>
-          <div className="forgot-password">
-            <Link to="/forgot-password" className="forgot-link">Forgot Password?</Link>
-          </div>
-          <button className="login-button" type="submit">Login</button>
-          <p className="signup-prompt">
-            Don’t have an account?{' '}
-            <Link className="signup-link" to="/signup">Sign Up</Link>
-          </p>
+          <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded w-full">
+            Login
+          </button>
         </form>
       </div>
     </div>
